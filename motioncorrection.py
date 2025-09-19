@@ -7,7 +7,7 @@ import pandas as pd
 df = pd.DataFrame(oshen_data_raw)
 
 
-def wind_correction(psm,pcm,wsm,wdm):
+def wind_correction(psm,pcm,wsm,wsx,wdm):
     uwnd = (-1)*wsm*math.sin(rad_deg*wdm)*mps_kt
     vwnd = (-1)*wsm*math.cos(rad_deg*wdm)*mps_kt
     wspd = wsm*mps_kt
@@ -18,6 +18,17 @@ def wind_correction(psm,pcm,wsm,wdm):
     vwnd05m = vwnd + cv
     wsp05m = ((uwnd05m ** 2) + (vwnd05m ** 2)) ** 0.5
     wind_speed = wsp05m
+
+    uwndx = (-1)*wsx*math.sin(rad_deg*wdm)*mps_kt
+    vwndx = (-1)*wsx*math.cos(rad_deg*wdm)*mps_kt
+    wspdx = wsx*mps_kt
+    cux = psm*math.sin(rad_deg*pcm)*mps_kt
+    cvx = psm*math.cos(rad_deg*pcm)*mps_kt
+    
+    uwnd05mx = uwndx + cux
+    vwnd05mx = vwndx + cvx
+    wsp05mx = ((uwnd05mx ** 2) + (vwnd05mx ** 2)) ** 0.5
+    wind_speed_max = wsp05mx
     
     wdir05m = math.atan2((-1)*uwnd05m,(-1)*vwnd05m) / rad_deg
     if wdir05m < 0:
@@ -25,7 +36,7 @@ def wind_correction(psm,pcm,wsm,wdm):
     else:
         wind_direction_from = wdir05m
 
-    return wind_speed, wind_direction_from
+    return wind_speed, wind_speed_max, wind_direction_from
 
 
 pi = 4*math.atan(1)
@@ -35,6 +46,7 @@ rad_deg = pi/180
 psm = df['platform_speed_wrt_ground_mean'][0]
 pcm = df['platform_course_mean'][0]
 wsm = df['wind_speed_mean'][0]
+wsx = df['wind_speed_max_raw'][0]
 wdm = df['wind_from_direction_mean'][0]
 
-wind_speed,wind_direction_from = wind_correction(psm,pcm,wsm,wdm)
+wind_speed_mean,wind_speed_of_gust,wind_from_direction_mean = wind_correction(psm,pcm,wsm,wsx,wdm)
